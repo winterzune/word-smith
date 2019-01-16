@@ -1,10 +1,7 @@
 var express = require("express");
-var logger = require("morgan");
 var mongoose = require("mongoose");
 
 // Our scraping tools
-// Axios is a promised-based http library, similar to jQuery's Ajax method
-// It works on the client and on the server
 var axios = require("axios");
 var cheerio = require("cheerio");
 
@@ -16,10 +13,6 @@ var PORT = 8080;
 // Initialize Express
 var app = express();
 
-// Configure middleware
-
-// Use morgan logger for logging requests
-app.use(logger("dev"));
 // Parse request body as JSON
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -30,7 +23,7 @@ app.use(express.static("public"));
 //revise after
 ///
 ////////
-mongoose.connect("mongodb://localhost/unit18Populater", { useNewUrlParser: true });
+mongoose.connect("mongodb://localhost/word-smith", { useNewUrlParser: true });
 
 // Routes
 // A GET route for scraping the UrbanDictionary website
@@ -80,7 +73,7 @@ axios.get("https://www.urbandictionary.com/").then(function(response) {
 // Route for getting all Words from the db
 app.get("/words", function(req, res) {
   // Grab every document in the Words collection
-  db.Article.find({})
+  db.Words.find({})
     .then(function(dbWords) {
       // If we were able to successfully find Words, send them back to the client
       res.json(dbWords);
@@ -91,7 +84,7 @@ app.get("/words", function(req, res) {
     });
 });
 
-// Route for grabbing a specific Word by id, populate it with it's note
+// Route for grabbing a specific Word by id, populate it with it's comments
 app.get("/words/:id", function(req, res) {
   // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
   db.Article.findOne({ _id: req.params.id })
@@ -107,14 +100,12 @@ app.get("/words/:id", function(req, res) {
     });
 });
 
-// Route for saving/updating an Article's associated Note
+// Route for saving/updating an Word's associated Comment
 app.post("/words/:id", function(req, res) {
-  // Create a new note and pass the req.body to the entry
+  // Create a new comment and pass the req.body to the entry
   db.Comments.create(req.body)
     .then(function(dbComments) {
-      // If a Note was created successfully, find one Article with an `_id` equal to `req.params.id`. Update the Article to be associated with the new Note
-      // { new: true } tells the query that we want it to return the updated User -- it returns the original by default
-      // Since our mongoose query returns a promise, we can chain another `.then` which receives the result of the query
+    
       return db.words.findOneAndUpdate({ _id: req.params.id }, { note: dbComments._id }, { new: true });
     })
     .then(function(dbWords) {
