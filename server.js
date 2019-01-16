@@ -66,7 +66,7 @@ axios.get("https://www.urbandictionary.com/").then(function(response) {
   /////
   /////
   /////
-  console.log(results);
+  console.log(results[0]);
 });
 
 
